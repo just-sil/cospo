@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#1b1f4f"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/css/site.css"><title>Log in · Woolly Run</title></head><body>
+<div class="wrap">
+ <div class="top"><a href="/"><img class="logo" src="/assets/logo.svg" alt="Woolly Run"></a><div class="nav"><a class="chip" href="/leaderboard.html">🏆 Rankings</a></div></div>
+ <div class="card" id="main">
+  <div id="v-auth">
+   <div class="tabs"><button id="t-in" class="on" type="button">Log in</button><button id="t-up" type="button">Create account</button></div>
+   <button class="sso g" id="b-google" type="button"><svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button>
+   <button class="sso f" id="b-fb" type="button"><svg viewBox="0 0 24 24" fill="#fff"><path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>Continue with Facebook</button>
+   <div class="sep">or use your e-mail</div>
+   <form id="f-auth" autocomplete="on" novalidate>
+    <div id="r-name" style="display:none"><label for="name">Display name</label><input id="name" maxlength="24" autocomplete="nickname" placeholder="Woolly"></div>
+    <label for="email">E-mail</label><input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
+    <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" minlength="8" required placeholder="At least 8 characters">
+    <div id="r-country" style="display:none"><label for="country">Country (for the country leaderboard)</label><select id="country"></select></div>
+    <div id="msg" class="msg" role="alert"></div>
+    <button class="btn pri" id="go" type="submit" style="margin-top:12px">Log in</button>
+   </form>
+   <p class="muted" style="text-align:center;margin:12px 0 0"><a href="#" id="forgot">Forgot password?</a></p>
+  </div>
+  <div id="v-country" style="display:none">
+   <h2>🌍 One last step</h2><p class="muted">Pick your country so you can appear on the country leaderboard with your flag.</p>
+   <select id="country2"></select><div id="msg2" class="msg" role="alert"></div><button class="btn pri" id="save-c" type="button" style="margin-top:12px">Save &amp; continue</button>
+  </div>
+  <div id="v-reset" style="display:none">
+   <h2>Choose a new password</h2><label for="npw">New password</label><input id="npw" type="password" minlength="8" autocomplete="new-password"><div id="msg3" class="msg" role="alert"></div><button class="btn pri" id="save-pw" type="button" style="margin-top:12px">Update password</button>
+  </div>
+  <div id="v-cfg" style="display:none" class="msg err">This server is not connected to Supabase yet. Set SUPABASE_URL and SUPABASE_ANON_KEY (see README).</div>
+ </div>
+ <p class="muted" style="text-align:center">By continuing you agree to play fair. Cheating scores are removed.</p>
+</div>
+<script src="/config.js"></script><script src="/js/wr.js"></script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)},mode='in',q=new URLSearchParams(location.search);
+var next=q.get('next')||'/';if(!/^\/[A-Za-z0-9_\-./?=&%]*$/.test(next)||next.indexOf('//')===0)next='/';
+function show(id,t,cls){var m=$(id);m.className='msg '+(cls||'err');m.textContent=t;m.style.display='block'}
+function view(v){['v-auth','v-country','v-reset'].forEach(function(x){$(x).style.display=x===v?'block':'none'})}
+function setMode(m){mode=m;$('t-in').className=m==='in'?'on':'';$('t-up').className=m==='up'?'on':'';$('r-name').style.display=$('r-country').style.display=m==='up'?'block':'none';$('go').textContent=m==='up'?'Create account':'Log in';$('pw').autocomplete=m==='up'?'new-password':'current-password';$('msg').style.display='none'}
+WR.countrySelect($('country'));WR.countrySelect($('country2'));
+fetch('/api/geo').then(function(r){return r.json()}).then(function(g){if(g.country){$('country').value=g.country;$('country2').value=g.country}}).catch(function(){});
+$('t-in').onclick=function(){setMode('in')};$('t-up').onclick=function(){setMode('up')};
+if(q.get('mode')==='signup')setMode('up');
+if(q.get('error_description'))show('msg',q.get('error_description'));
+if(!WR.configured()){$('v-auth').style.display='none';$('v-cfg').style.display='block';return}
+function afterLogin(){WR.me(true).then(function(p){if(p&&!p.country){view('v-country');return}location.replace(next)})}
+WR.sb().then(function(sb){
+ sb.auth.onAuthStateChange(function(ev){if(ev==='PASSWORD_RECOVERY')view('v-reset')});
+ sb.auth.getSession().then(function(r){if(r.data.session&&q.get('type')!=='recovery'&&!location.hash.includes('type=recovery'))afterLogin()});
+ function oauth(p){sb.auth.signInWithOAuth({provider:p,options:{redirectTo:location.origin+'/login.html?next='+encodeURIComponent(next)}}).then(function(r){if(r.error)show('msg',r.error.message)})}
+ $('b-google').onclick=function(){oauth('google')};$('b-fb').onclick=function(){oauth('facebook')};
+ $('f-auth').onsubmit=function(e){e.preventDefault();var email=$('email').value.trim(),pw=$('pw').value;$('msg').style.display='none';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))return show('msg','Enter a valid e-mail address');if(pw.length<8)return show('msg','Password must be at least 8 characters');
+  $('go').disabled=true;var old=$('go').textContent;$('go').innerHTML='<span class="spin"></span>';
+  var p=mode==='up'?(function(){if(!$('country').value){return Promise.resolve({error:{message:'Please choose your country'}})}return sb.auth.signUp({email:email,password:pw,options:{data:{name:$('name').value.trim()||email.split('@')[0],country:$('country').value},emailRedirectTo:location.origin+'/login.html?next='+encodeURIComponent(next)}})})():sb.auth.signInWithPassword({email:email,password:pw});
+  p.then(function(r){$('go').disabled=false;$('go').textContent=old;if(r.error)return show('msg',r.error.message);
+   if(mode==='up'&&!r.data.session)return show('msg','Almost there! Check your inbox and click the confirmation link.','ok');afterLogin()}).catch(function(err){$('go').disabled=false;$('go').textContent=old;show('msg',err.message)})};
+ $('forgot').onclick=function(e){e.preventDefault();var email=$('email').value.trim();if(!email)return show('msg','Type your e-mail above first');
+  sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/login.html?type=recovery'}).then(function(r){r.error?show('msg',r.error.message):show('msg','Password reset e-mail sent (if that address has an account).','ok')})};
+ $('save-c').onclick=function(){var c=$('country2').value;if(!c)return show('msg2','Please choose your country');WR.rpc('update_profile',{p_country:c}).then(function(){location.replace(next)}).catch(function(e){show('msg2',WR.errMsg(e))})};
+ $('save-pw').onclick=function(){var pw=$('npw').value;if(pw.length<8)return show('msg3','Password must be at least 8 characters');sb.auth.updateUser({password:pw}).then(function(r){r.error?show('msg3',r.error.message):(show('msg3','Password updated!','ok'),setTimeout(function(){location.replace('/')},900))})};
+}).catch(function(e){show('msg',e.message)});
+})();
+</script></body></html>

@@ -1,0 +1,32 @@
+# Local development with the Supabase CLI (`supabase start`). Hosted projects are configured in the dashboard.
+project_id = "woolly-run"
+
+[api]
+port = 54321
+
+[db]
+port = 54322
+major_version = 15
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/login.html", "http://localhost:3000/account.html", "http://localhost:3000/"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+# Turn this ON in production so people must confirm their email address
+enable_confirmations = false
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+
+[auth.external.facebook]
+enabled = true
+client_id = "env(FACEBOOK_APP_ID)"
+secret = "env(FACEBOOK_APP_SECRET)"

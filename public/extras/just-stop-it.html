@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Just Stop It – Easy? Not really.</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f3ff;--fg:#241b3d;--card:#fff;--lane:#ddd5f5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15112a;--fg:#f1edff;--card:#241d44;--lane:#352d5e}}
+:root[data-theme="dark"]{--bg:#15112a;--fg:#f1edff;--card:#241d44;--lane:#352d5e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+h1{font-size:15px;margin:6px 0;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.stats{display:flex;gap:10px;width:min(94vw,420px);margin:8px 0 28px}
+.stats div{flex:1;background:var(--card);border-radius:12px;padding:8px;text-align:center;font-size:12px}
+.stats b{display:block;font-size:26px}
+#lane{position:relative;width:min(94vw,420px);height:56px;background:var(--lane);border-radius:28px;overflow:hidden}
+#zone{position:absolute;top:0;bottom:0;background:#37b24d;opacity:.9}
+#mk{position:absolute;top:4px;bottom:4px;width:8px;margin-left:-4px;border-radius:4px;background:var(--fg)}
+#msg{height:30px;margin:16px 0;font-size:18px;font-weight:800;text-align:center}
+#tap{width:min(94vw,420px);flex:1;min-height:150px;max-height:260px;border:0;border-radius:22px;background:#7048e8;color:#fff;font-size:34px;font-weight:900;box-shadow:inset 0 -8px #0003;cursor:pointer}
+#tap:active{transform:scale(.97)}
+#ov{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px;z-index:5}
+#ov div{background:var(--card);padding:22px;border-radius:16px;max-width:340px;text-align:center}
+#ov h2{margin:0 0 8px}#ov p{margin:0 0 14px;line-height:1.4;font-size:14px}
+.go{background:#7048e8;color:#fff;border:0;padding:12px 28px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+</style>
+<style id="adcss">
+#adb{position:fixed;top:0;left:0;right:0;height:50px;z-index:60;background:#0b0d16;border-bottom:1px solid #ffffff22;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#adb .adi{position:relative;width:min(100%,468px);height:100%;display:flex;align-items:center;justify-content:center;font:700 13px system-ui,sans-serif;color:#fff;text-align:center;padding:0 22px}
+#adb .adt{position:absolute;left:4px;top:3px;font-size:8px;background:#0009;padding:1px 4px;border-radius:3px}
+#adf{position:fixed;inset:0;z-index:100;background:#05060c;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:system-ui,sans-serif;text-align:center;padding:20px}
+#adf .tag{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:14px;font-size:11px;opacity:.7;letter-spacing:.06em}
+#adf .card{width:min(86vw,340px);padding:26px 18px;border-radius:18px;background:linear-gradient(135deg,#1877f2,#7048e8)}
+#adf .card b{display:block;font-size:44px}#adf .card h2{margin:8px 0 6px}#adf .card p{margin:0;font-size:13px;opacity:.9;line-height:1.5}
+#adx{margin-top:22px;border:0;border-radius:10px;padding:12px 26px;font-size:15px;font-weight:800;background:#fff;color:#111;cursor:pointer}#adx:disabled{opacity:.45}
+body{padding-top:50px !important}
+</style>
+<script async src="https://connect.facebook.net/en_US/fbinstant.7.1.js"></script>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#1b1f4f">
+</head><body>
+<div id="adb"></div>
+<div id="adf"><div class="tag">ADVERTISEMENT · demo placeholder</div><div class="card" id="adc"><b>📣</b><h2>Your Meta ad here</h2><p>Inside Meta Instant Games this is a real full-screen Meta interstitial ad.</p></div><button id="adx" disabled>Close in 4</button></div>
+<script src="/config.js"></script>
+<script>
+const AD_CONFIG={banner:'',interstitial:'',bannerOn:true,intOn:true,minGap:0};
+function ADH(){const b=document.getElementById('adb');return b&&b.style.display!=='none'?50:0}
+const AD=(()=>{const bn=document.getElementById('adb');let meta=false,inter=null,busy=false,pi=0,lastInt=0,ready=false;
+ const okB=()=>!!AD_CONFIG.banner&&!/^YOUR_/.test(AD_CONFIG.banner),okI=()=>!!AD_CONFIG.interstitial&&!/^YOUR_/.test(AD_CONFIG.interstitial);
+ const track=(p,e)=>{try{fetch('/api/ads/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({placement:p,event:e}),keepalive:true}).catch(()=>{})}catch(x){}};
+ const PROMO=[['Your Meta ad appears here','#1877f2,#0a4cc0'],['Advertise with Meta Ads · 320x50','#7048e8,#1877f2'],['More levels of Woolly Run!','#2f9e44,#1c7ed6']];
+ function rot(){if(!ready||!AD_CONFIG.bannerOn||(meta&&okB()))return;const p=PROMO[pi++%PROMO.length];bn.innerHTML='<div class="adi" style="background:linear-gradient(90deg,'+p[1]+')"><span class="adt">AD</span>'+p[0]+'</div>';track('banner','impression')}
+ bn.addEventListener('click',()=>{if(!meta)track('banner','click')});
+ function preload(){try{FBInstant.getInterstitialAdAsync(AD_CONFIG.interstitial).then(a=>{inter=a;return a.loadAsync()}).catch(()=>{inter=null})}catch(e){inter=null}}
+ function initMeta(){let n=0;const t=setInterval(()=>{if(window.FBInstant&&FBInstant.initializeAsync){clearInterval(t);try{FBInstant.initializeAsync().then(()=>{meta=true;if(okB()){bn.style.display='none';if(window.layout)layout();FBInstant.loadBannerAdAsync(AD_CONFIG.banner).catch(()=>{})}if(okI())preload()}).catch(()=>{})}catch(e){}}else if(++n>30)clearInterval(t)},100)}
+ function applyCfg(a){a=a||{};const b=a.banner||{},i=a.interstitial||{};AD_CONFIG.banner=b.placementId||'';AD_CONFIG.interstitial=i.placementId||'';AD_CONFIG.bannerOn=!!(a.enabled!==false&&b.enabled!==false);AD_CONFIG.intOn=!!(a.enabled!==false&&i.enabled!==false);AD_CONFIG.minGap=+i.minGapSec||0;ready=true;
+  if(!AD_CONFIG.bannerOn){bn.style.display='none';bn.innerHTML=''}else{bn.style.display='flex';rot()}if(window.layout)layout()}
+ fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(c=>applyCfg(c.ads)).catch(()=>applyCfg({}));
+ setInterval(rot,30000);initMeta();
+ function full(cb){if(!AD_CONFIG.intOn||busy||(AD_CONFIG.minGap&&Date.now()-lastInt<AD_CONFIG.minGap*1000)){cb();return}busy=true;const done=()=>{busy=false;lastInt=Date.now();cb()};
+  if(meta&&okI()&&inter){const a=inter;inter=null;track('interstitial','impression');a.showAsync().then(()=>{preload();done()}).catch(()=>{preload();done()});return}
+  const o=document.getElementById('adf'),x=document.getElementById('adx'),c=document.getElementById('adc');o.style.display='flex';track('interstitial','impression');let s=4;x.disabled=true;x.textContent='Close in '+s;c.onclick=()=>{track('interstitial','click');c.onclick=null};
+  const t=setInterval(()=>{s--;if(s>0)x.textContent='Close in '+s;else{clearInterval(t);x.disabled=false;x.textContent='Close ✕'}},1000);
+  x.onclick=()=>{if(x.disabled)return;o.style.display='none';done()}}
+ return{full}})();
+</script>
+<script src="/js/wr.js" defer></script>
+
+
+
+<h1>Just Stop It</h1>
+<div class="stats"><div><b id="sc">0</b>streak</div><div><b id="bs">0</b>best</div></div>
+<div id="lane"><div id="zone"></div><div id="mk"></div></div>
+<div id="msg">Stop the line inside the green</div>
+<button id="tap">STOP</button>
+<div id="ov"><div><h2>🎯 Just Stop It</h2><p>Tap to stop the moving line inside the green zone. Sounds easy... but the zone shrinks and the line speeds up every hit. One miss and it's over.</p><button class="go" id="gb">Start</button></div></div>
+<script>
+const $=id=>document.getElementById(id);
+let p,dir,speed,zw,zx,score,best=0,state,last,drift,dd;
+try{best=+localStorage.getItem('jsi')||0}catch(e){}
+$('bs').textContent=best;
+function setZone(){
+  zw=Math.max(.025,.30*Math.pow(.9,score));
+  const lo=.04,hi=.96-zw;
+  zx=lo+Math.random()*(hi-lo);
+  drift=score>=8?(Math.random()<.5?-1:1)*Math.min(.12,.02*(score-6)):0;
+  speed=.55+score*.07;
+}
+function start(){score=0;p=0;dir=1;dd=1;setZone();state='play';last=performance.now();$('ov').style.display='none';$('msg').textContent='Stop the line inside the green';draw();requestAnimationFrame(loop)}
+function end(){state='over';
+  if(score>best){best=score;try{localStorage.setItem('jsi',best)}catch(e){}}
+  $('bs').textContent=best;
+  $('ov').innerHTML=`<div><h2>${score>=15?'🏆':'💥'} Streak: ${score}</h2><p>${score<5?'Easy, right? It gets nastier...':score<12?'Nice! Can you beat '+Math.max(best,score)+'?':'Insane reflexes!'}</p><button class="go" id="gb">Try again</button></div>`;
+  AD.full(()=>{$('ov').style.display='flex'});$('gb').onclick=start}
+$('tap').onpointerdown=e=>{e.preventDefault();
+  if(state!=='play')return;
+  const hit=p>=zx&&p<=zx+zw;
+  if(!hit){end();return}
+  score++;$('sc').textContent=score;
+  const c=Math.abs(p-(zx+zw/2))<zw*.15;
+  $('msg').textContent=c?'PERFECT!':'Hit!';
+  setZone();
+};
+function draw(){
+  $('mk').style.left=(p*100)+'%';
+  $('zone').style.left=(zx*100)+'%';$('zone').style.width=(zw*100)+'%';
+  $('sc').textContent=score;
+}
+function loop(n){
+  if(state!=='play')return;
+  const dt=Math.min((n-last)/1000,.05);last=n;
+  p+=dir*speed*dt;
+  if(p>=1){p=1;dir=-1}else if(p<=0){p=0;dir=1}
+  if(drift){zx+=drift*dd*dt;if(zx<.02){zx=.02;dd=1}else if(zx+zw>.98){zx=.98-zw;dd=-1}}
+  draw();requestAnimationFrame(loop);
+}
+$('gb').onclick=start;
+</script></body></html>

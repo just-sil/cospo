@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#1b1f4f"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/css/site.css"><title>Leaderboard · Woolly Run</title></head><body>
+<div class="wrap">
+ <div class="top"><a href="/"><img class="logo" src="/assets/logo.svg" alt="Woolly Run"></a><div class="nav"><span id="wr-chip"></span><a class="chip" href="/">🗺️ Map</a></div></div>
+ <h1>🏆 Infinite Mode rankings</h1><div class="muted" style="margin-bottom:12px">Best score of every player · score = metres + 10 per clover</div>
+ <div class="tabs"><button id="t-w" class="on">🌍 World</button><button id="t-c">🏳️ Country</button><button id="t-k">🌐 Countries</button></div>
+ <div class="card"><div id="pick" style="display:none;margin-bottom:10px"><select id="cc"></select></div><div id="mine" class="muted" style="margin-bottom:8px"></div><div id="out"><span class="spin"></span></div></div>
+ <div class="muted" style="text-align:center">Scores are checked on the server. Anyone caught cheating is removed.</div>
+</div>
+<script src="/config.js"></script><script src="/js/wr.js"></script>
+<script>
+(function(){var $=function(i){return document.getElementById(i)},tab='w',me=null;
+if(!WR.configured()){$('out').textContent='This server is not connected to Supabase yet.';return}
+WR.countrySelect($('cc'));
+function set(t){tab=t;['w','c','k'].forEach(function(x){$('t-'+x).className=x===t?'on':''});$('pick').style.display=t==='c'?'block':'none';load()}
+function load(){$('out').innerHTML='<span class="spin"></span>';$('mine').textContent='';
+ if(tab==='k'){WR.rpc('country_ranking',{p_limit:50}).then(function(r){$('out').innerHTML=!r||!r.length?'<div class="muted">No countries yet.</div>':'<table class="lbt">'+r.map(function(x){return '<tr class="'+(me&&me.country===x.country?'me':'')+'"><td class="rk">'+x.rnk+'.</td><td>'+WR.flag(x.country)+'</td><td class="nm">'+WR.esc(WR.cname(x.country))+'</td><td class="sc">'+x.total+'</td><td class="ds">'+x.players+' players</td></tr>'}).join('')+'</table><div class="muted" style="margin-top:8px">Country score = sum of its top 10 players.</div>'}).catch(function(e){$('out').textContent=WR.errMsg(e)});return}
+ var c=tab==='c'?($('cc').value||(me&&me.country)||''):'';
+ if(tab==='c'&&!c){$('out').innerHTML='<div class="muted">Choose a country above.</div>';return}
+ WR.rpc('leaderboard',{p_scope:tab==='c'?'country':'world',p_country:c||null,p_limit:50}).then(function(r){$('out').innerHTML=WR.rows(r);
+  if(me&&me.best_score>0)WR.rpc('my_rank',{p_scope:tab==='c'?'country':'world'}).then(function(m){if(m)$('mine').innerHTML='You: <b>#'+m.rank+'</b> of '+m.total+' · best '+m.score})}).catch(function(e){$('out').textContent=WR.errMsg(e)})}
+$('t-w').onclick=function(){set('w')};$('t-c').onclick=function(){set('c')};$('t-k').onclick=function(){set('k')};$('cc').onchange=load;
+(WR.hasStoredSession()?WR.me():Promise.resolve(null)).then(function(p){me=p;if(p&&p.country)$('cc').value=p.country;load()});
+})();
+</script></body></html>

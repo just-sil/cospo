@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#1b1f4f"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><link rel="stylesheet" href="/css/site.css"><title>My account · Woolly Run</title></head><body>
+<div class="wrap">
+ <div class="top"><a href="/"><img class="logo" src="/assets/logo.svg" alt="Woolly Run"></a><div class="nav"><a class="chip" href="/leaderboard.html">🏆 Rankings</a><a class="chip" href="/">🗺️ Map</a></div></div>
+ <div id="load" class="card"><span class="spin"></span> Loading…</div>
+ <div id="app" style="display:none">
+  <div class="card"><h1 id="hello">Hello</h1><div class="muted" id="sub"></div>
+   <label for="nm">Display name</label><input id="nm" maxlength="24"><label for="ct">Country</label><select id="ct"></select>
+   <div id="msg" class="msg" role="alert"></div><button class="btn pri" id="save" style="margin-top:12px">Save changes</button></div>
+  <div class="card"><h2>🏆 Infinite Mode</h2><div class="grid"><div class="stat"><b id="best">0</b><span>Best score</span></div><div class="stat"><b id="wr">–</b><span>World rank</span></div><div class="stat"><b id="cr">–</b><span id="crl">Country rank</span></div></div></div>
+  <div class="card"><h2>🗺️ Levels cleared</h2><div class="lv" id="lv"></div></div>
+  <div class="card"><a class="btn" id="adm" href="/admin" style="display:none;margin-bottom:10px">🛠 Admin panel</a><button class="btn red" id="out">Log out</button></div>
+ </div>
+</div>
+<script src="/config.js"></script><script src="/js/wr.js"></script>
+<script>
+(function(){var $=function(i){return document.getElementById(i)};
+if(!WR.configured()){$('load').textContent='This server is not connected to Supabase yet.';return}
+WR.me(true).then(function(p){
+ if(!p){location.replace('/login.html?next=/account.html');return}
+ $('load').style.display='none';$('app').style.display='block';$('hello').innerHTML=WR.flag(p.country)+' '+WR.esc(p.name);$('sub').textContent='Playing since '+new Date(p.created_at).toLocaleDateString();
+ $('nm').value=p.name;WR.countrySelect($('ct'),p.country);$('best').textContent=p.best_score;
+ $('lv').innerHTML=Array.from({length:10},function(_,i){var n=i+1;return '<div class="'+((p.cleared||[]).indexOf(n)>-1?'on':'')+'">'+n+((p.cleared||[]).indexOf(n)>-1?' ⭐':'')+'</div>'}).join('');
+ if(p.role==='admin')$('adm').style.display='flex';
+ (p.cleared||[]).forEach(function(n){try{localStorage.setItem('woolly_cleared_'+n,'1')}catch(e){}});
+ if(p.best_score>0){WR.rpc('my_rank',{p_scope:'world'}).then(function(r){if(r)$('wr').textContent='#'+r.rank});WR.rpc('my_rank',{p_scope:'country'}).then(function(r){if(r){$('cr').textContent='#'+r.rank;$('crl').innerHTML=WR.flag(p.country)+' '+WR.esc(WR.cname(p.country))+' rank'}})}
+ $('save').onclick=function(){var m=$('msg');m.style.display='none';WR.rpc('update_profile',{p_name:$('nm').value,p_country:$('ct').value||null}).then(function(){m.className='msg ok';m.textContent='Saved!';m.style.display='block';WR.me(true)}).catch(function(e){m.className='msg err';m.textContent=WR.errMsg(e);m.style.display='block'})};
+ $('out').onclick=function(){WR.signOut().then(function(){location.replace('/')})};
+});})();
+</script></body></html>
