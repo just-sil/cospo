@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
-    "test": "node --test test/api.test.js test/client.test.js",
+    "test": "node --test test/api.test.js test/client.test.js test/game.test.js",
     "check": "node --check server/index.js && node --check server/supabase.js && node --check server/app.js"
   },
   "engines": { "node": ">=18" },

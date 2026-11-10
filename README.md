@@ -12,14 +12,14 @@ Browser ──(Supabase JS: login, leaderboards, score submit via RPC)──► 
 
 | Area | Details |
 |---|---|
-| Game | `public/level-1.html … level-10.html`, `infinite.html`, map hub `index.html`, all-in-one `play.html`, 4 mini-games in `public/extras/` |
+| Game | Engine in `public/game/` (plain ES modules, no build step). Pages: map hub `index.html`, `level-1.html … level-10.html`, `infinite.html`, all-in-one `play.html`, 4 mini-games in `public/extras/` |
 | Login | `public/login.html` – Google, Facebook, e-mail (sign-up, log-in, forgot/reset password), country picker |
 | Rankings | `public/leaderboard.html` – 🌍 world, 🏳️ per country (flag images from flagcdn, emoji fallback), 🌐 country ranking |
 | Account | `public/account.html` – edit name/country, ranks, levels cleared (synced across devices) |
 | Admin | `public/admin.html` (`/admin`) – dashboard, users (search/ban/promote/delete), ads settings, revenue entries, CSV export, score moderation |
 | Backend | `server/` – static hosting + CSP/security headers, `/config.js`, ad config + events, admin API, rate limiting, health check |
 | Database | `supabase/migrations/…init.sql` – tables, RLS, triggers, RPC functions (all validation lives in SQL) |
-| Tests | `npm test` – 22 tests (server API against a mock Supabase, client SDK) |
+| Tests | `npm test` – 40 tests (server API against a mock Supabase, client SDK, game engine) |
 | Logo | `public/assets/logo.svg`, `icon.svg`, PNG icons, `favicon.svg`, PWA `manifest.webmanifest` |
 
 ## 1. Create the Supabase project (≈10 min)
@@ -64,7 +64,7 @@ Start command `node server/index.js`, health check `/api/health`, set the env va
 ## 4. Ads (Meta) and revenue
 
 * Every game page has a **top banner** and a **full-screen ad on game over**. Until you configure Meta, these are clearly labelled demo placeholders.
-* **Real Meta ads** run inside **Meta Instant Games** (the SDK is already included: banner + interstitial via `FBInstant`). Publish the game there, create placements in *Monetization Manager*, then paste the **banner** and **interstitial placement IDs** in **Admin → Ads & revenue → Ad settings** (no redeploy needed). Meta's Audience Network for *native apps* is a different SDK and needs an Android/iOS wrapper.
+* **Real Meta ads** run inside **Meta Instant Games** (the SDK is already included by `public/js/ads.js`: banner + interstitial via `FBInstant`). Publish the game there, create placements in *Monetization Manager*, then paste the **banner** and **interstitial placement IDs** in **Admin → Ads & revenue → Ad settings** (no redeploy needed). Meta's Audience Network for *native apps* is a different SDK and needs an Android/iOS wrapper.
 * The server records **impressions and clicks** per day (`ad_daily`) and estimates revenue with the eCPM you set. **Real revenue is reported by Meta**, so enter it in *Add real revenue* (or paste daily numbers) and compare estimated vs reported; export CSV any time.
 * Toggle banner / interstitial on or off, or set a minimum gap between full-screen ads, from the same screen.
 
@@ -86,7 +86,7 @@ Dashboard (players, active, new, ads totals, charts, top countries/scores) · Us
 ## 7. Development
 
 ```bash
-npm test          # API tests (mock Supabase) + client tests
+npm test          # API tests (mock Supabase) + client tests + game engine tests
 npm run check     # syntax check of the server
 ```
 `supabase start` (CLI + Docker) runs a full local Supabase using `supabase/config.toml`.
@@ -95,7 +95,28 @@ npm run check     # syntax check of the server
 
 ```
 server/            index.js (boot) · app.js (routes, security, static) · supabase.js (REST/Auth client)
-public/            game pages, login/account/leaderboard/admin, js/wr.js (client SDK), css, assets (logo)
+public/            game pages, login/account/leaderboard/admin, js/wr.js (client SDK), js/ads.js (ads), css, assets (logo)
+public/game/       the game engine (see "Game code" below)
 supabase/          migrations/*.sql, config.toml
-test/              api.test.js, client.test.js, mock-supabase.js
+test/              api.test.js, client.test.js, game.test.js, mock-supabase.js
 ```
+
+## Game code
+
+The game is a set of plain ES modules in `public/game/`, loaded directly by the browser (no bundler, no dependencies). Every game page is a few lines of HTML: `<body data-level="3">` plus `<script type="module" src="/game/main.js">`. `data-level="map"` (used by `play.html`) shows the world map and plays every level without reloading.
+
+```
+game/
+  main.js          boot, game loop (fixed 60 Hz), screens and level flow
+  levels.js        level catalogue: text, rules, map marker and world layout of every level
+  progress.js      cleared levels, local top 10, player name (localStorage)
+  entities.js      builders for platforms and ground enemies
+  sprites.js       sheep, wolf, barn, checkpoint, spikes, fire jets, clovers
+  themes.js        per-level backgrounds, platform styles and enemy looks
+  core/            audio (procedural sound), input (keys + touch), stage (canvas, rotation, fullscreen), particles, HUD helpers
+  modes/           platformer.js (8 levels + Infinite), highway.js (bike level), space.js (rocket level), mode.js (shared base)
+  features/        level add-ons plugged into the platformer: haunted, frost, siege, neon, sky, crystal, infinite
+  ui/              overlay screens and the generated world map
+```
+
+**Adding a platformer level:** add an entry to `LEVELS` in `levels.js` (pick a `theme`, optional `features` and `rules`, a `map` position and the `world` layout), then create its page (copy any `level-N.html` and change `data-level` and the title). A brand-new mechanic goes in a new file in `features/`, using the hooks documented in `features/index.js`.
