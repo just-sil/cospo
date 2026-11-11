@@ -1,0 +1,4 @@
+{
+  "//": "Lets Node (npm test) load the game's browser ES modules directly. Browsers ignore this file.",
+  "type": "module"
+}

@@ -29,45 +29,10 @@ h1{font-size:15px;margin:4px 0 10px;letter-spacing:.08em;text-transform:uppercas
 #ov h2{margin:0 0 8px}#ov p{margin:0 0 14px;line-height:1.4;font-size:14px}
 .go{background:#2f9e44;color:#fff;border:0;padding:12px 28px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
 </style>
-<style id="adcss">
-#adb{position:fixed;top:0;left:0;right:0;height:50px;z-index:60;background:#0b0d16;border-bottom:1px solid #ffffff22;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#adb .adi{position:relative;width:min(100%,468px);height:100%;display:flex;align-items:center;justify-content:center;font:700 13px system-ui,sans-serif;color:#fff;text-align:center;padding:0 22px}
-#adb .adt{position:absolute;left:4px;top:3px;font-size:8px;background:#0009;padding:1px 4px;border-radius:3px}
-#adf{position:fixed;inset:0;z-index:100;background:#05060c;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:system-ui,sans-serif;text-align:center;padding:20px}
-#adf .tag{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:14px;font-size:11px;opacity:.7;letter-spacing:.06em}
-#adf .card{width:min(86vw,340px);padding:26px 18px;border-radius:18px;background:linear-gradient(135deg,#1877f2,#7048e8)}
-#adf .card b{display:block;font-size:44px}#adf .card h2{margin:8px 0 6px}#adf .card p{margin:0;font-size:13px;opacity:.9;line-height:1.5}
-#adx{margin-top:22px;border:0;border-radius:10px;padding:12px 26px;font-size:15px;font-weight:800;background:#fff;color:#111;cursor:pointer}#adx:disabled{opacity:.45}
-body{padding-top:50px !important}
-</style>
-<script async src="https://connect.facebook.net/en_US/fbinstant.7.1.js"></script>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#1b1f4f">
 </head><body>
-<div id="adb"></div>
-<div id="adf"><div class="tag">ADVERTISEMENT · demo placeholder</div><div class="card" id="adc"><b>📣</b><h2>Your Meta ad here</h2><p>Inside Meta Instant Games this is a real full-screen Meta interstitial ad.</p></div><button id="adx" disabled>Close in 4</button></div>
+<script src="/js/ads.js"></script>
 <script src="/config.js"></script>
-<script>
-const AD_CONFIG={banner:'',interstitial:'',bannerOn:true,intOn:true,minGap:0};
-function ADH(){const b=document.getElementById('adb');return b&&b.style.display!=='none'?50:0}
-const AD=(()=>{const bn=document.getElementById('adb');let meta=false,inter=null,busy=false,pi=0,lastInt=0,ready=false;
- const okB=()=>!!AD_CONFIG.banner&&!/^YOUR_/.test(AD_CONFIG.banner),okI=()=>!!AD_CONFIG.interstitial&&!/^YOUR_/.test(AD_CONFIG.interstitial);
- const track=(p,e)=>{try{fetch('/api/ads/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({placement:p,event:e}),keepalive:true}).catch(()=>{})}catch(x){}};
- const PROMO=[['Your Meta ad appears here','#1877f2,#0a4cc0'],['Advertise with Meta Ads · 320x50','#7048e8,#1877f2'],['More levels of Woolly Run!','#2f9e44,#1c7ed6']];
- function rot(){if(!ready||!AD_CONFIG.bannerOn||(meta&&okB()))return;const p=PROMO[pi++%PROMO.length];bn.innerHTML='<div class="adi" style="background:linear-gradient(90deg,'+p[1]+')"><span class="adt">AD</span>'+p[0]+'</div>';track('banner','impression')}
- bn.addEventListener('click',()=>{if(!meta)track('banner','click')});
- function preload(){try{FBInstant.getInterstitialAdAsync(AD_CONFIG.interstitial).then(a=>{inter=a;return a.loadAsync()}).catch(()=>{inter=null})}catch(e){inter=null}}
- function initMeta(){let n=0;const t=setInterval(()=>{if(window.FBInstant&&FBInstant.initializeAsync){clearInterval(t);try{FBInstant.initializeAsync().then(()=>{meta=true;if(okB()){bn.style.display='none';if(window.layout)layout();FBInstant.loadBannerAdAsync(AD_CONFIG.banner).catch(()=>{})}if(okI())preload()}).catch(()=>{})}catch(e){}}else if(++n>30)clearInterval(t)},100)}
- function applyCfg(a){a=a||{};const b=a.banner||{},i=a.interstitial||{};AD_CONFIG.banner=b.placementId||'';AD_CONFIG.interstitial=i.placementId||'';AD_CONFIG.bannerOn=!!(a.enabled!==false&&b.enabled!==false);AD_CONFIG.intOn=!!(a.enabled!==false&&i.enabled!==false);AD_CONFIG.minGap=+i.minGapSec||0;ready=true;
-  if(!AD_CONFIG.bannerOn){bn.style.display='none';bn.innerHTML=''}else{bn.style.display='flex';rot()}if(window.layout)layout()}
- fetch('/api/config').then(r=>r.ok?r.json():Promise.reject()).then(c=>applyCfg(c.ads)).catch(()=>applyCfg({}));
- setInterval(rot,30000);initMeta();
- function full(cb){if(!AD_CONFIG.intOn||busy||(AD_CONFIG.minGap&&Date.now()-lastInt<AD_CONFIG.minGap*1000)){cb();return}busy=true;const done=()=>{busy=false;lastInt=Date.now();cb()};
-  if(meta&&okI()&&inter){const a=inter;inter=null;track('interstitial','impression');a.showAsync().then(()=>{preload();done()}).catch(()=>{preload();done()});return}
-  const o=document.getElementById('adf'),x=document.getElementById('adx'),c=document.getElementById('adc');o.style.display='flex';track('interstitial','impression');let s=4;x.disabled=true;x.textContent='Close in '+s;c.onclick=()=>{track('interstitial','click');c.onclick=null};
-  const t=setInterval(()=>{s--;if(s>0)x.textContent='Close in '+s;else{clearInterval(t);x.disabled=false;x.textContent='Close ✕'}},1000);
-  x.onclick=()=>{if(x.disabled)return;o.style.display='none';done()}}
- return{full}})();
-</script>
 <script src="/js/wr.js" defer></script>
 
 
